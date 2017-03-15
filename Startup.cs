@@ -1,5 +1,4 @@
-﻿using Aula02Api.Middlewares;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +21,6 @@ namespace Aula02Api
 
         public IConfigurationRoot Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
@@ -64,17 +62,18 @@ namespace Aula02Api
             }, HandleBranch);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            // *** Exemplo Middleware *** // 
             // app.Run(async context =>
             // {
             //     await context.Response.WriteAsync("Aioooo silverrrr!");
             // }); 
 
+            // *** Exemplo Middleware *** //
             // app.Use(async (context, next) =>
             // {
             //     //action before next delegate
@@ -82,16 +81,16 @@ namespace Aula02Api
             //     //action after called middleware
             // });
 
+            // *** Exemplo Middleware *** //
             // this.ConfigureMapWhen(app);      
 
-             this.ConfigureMapping(app);                
+            this.ConfigureMapping(app);
 
-        //   app.ApplyUserValidation();
+            // *** Exemplo Middleware *** //
+            // app.ApplyUserValidation();
 
 
             app.UseMvc();
-
-           // app.UseWelcomePage();
         }
     }
 }
