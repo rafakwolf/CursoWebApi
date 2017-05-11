@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Aula02Api.Db;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Serialization;
 
 namespace Aula02Api
 {
@@ -23,8 +26,14 @@ namespace Aula02Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            services.AddMvc();
+            services.AddEntityFrameworkSqlServer().AddDbContext<DataContext>(
+                options => options.UseSqlServer(
+                    Configuration.GetConnectionString("BancoDados")));
+
+
+            services.AddMvc()
+                    .AddJsonOptions(options =>
+                      options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver());
         }
 
         // ============== middleware condicional 01 ====================== //
@@ -68,27 +77,26 @@ namespace Aula02Api
             loggerFactory.AddDebug();
 
             // *** Exemplo Middleware *** // 
-            // app.Run(async context =>
-            // {
-            //     await context.Response.WriteAsync("Aioooo silverrrr!");
-            // }); 
+                // app.Run(async context =>
+                // {
+                //     await context.Response.WriteAsync("Aioooo silverrrr!");
+                // }); 
 
             // *** Exemplo Middleware *** //
-            // app.Use(async (context, next) =>
-            // {
-            //     //action before next delegate
-            //     await next.Invoke(); //call next middleware
-            //     //action after called middleware
-            // });
+                // app.Use(async (context, next) =>
+                // {
+                //     //action before next delegate
+                //     await next.Invoke(); //call next middleware
+                //     //action after called middleware
+                // });
 
             // *** Exemplo Middleware *** //
-            // this.ConfigureMapWhen(app);      
+                // this.ConfigureMapWhen(app);      
 
             this.ConfigureMapping(app);
 
             // *** Exemplo Middleware *** //
-            // app.ApplyUserValidation();
-
+                // app.ApplyUserValidation();
 
             app.UseMvc();
         }
