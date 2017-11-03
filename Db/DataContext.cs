@@ -10,5 +10,6 @@ namespace Aula02Api.Db
         }
 
         public DbSet<Tarefa> Tarefas { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

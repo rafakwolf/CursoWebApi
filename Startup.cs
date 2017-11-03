@@ -1,4 +1,5 @@
-﻿using Aula02Api.Db;
+﻿using Aula02Api.Auth;
+using Aula02Api.Db;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -6,7 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
+using Swashbuckle.AspNetCore.Swagger;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace Aula02Api
 {
@@ -30,6 +35,22 @@ namespace Aula02Api
                 options => options.UseSqlServer(
                     Configuration.GetConnectionString("BancoDados")));
 
+            /* JWT */
+
+            var key = Encoding.UTF8.GetBytes(Configuration["Auth:SecurityKey"]);
+            var expiration = int.Parse(Configuration["Auth:Expiration"]);
+
+            services.AddSingleton(new JwtSettings(new SymmetricSecurityKey(key), expiration));
+            services.AddSingleton<AuthenticationHandler>();
+            services.AddTransient<JwtSecurityTokenHandler>();
+            services.AddTransient<JwtProvider>();
+
+            /* JWT */
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "Minha API", Version = "v1" });
+            });
 
             services.AddMvc()
                     .AddJsonOptions(options =>
@@ -71,7 +92,8 @@ namespace Aula02Api
             }, HandleBranch);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
+            ILoggerFactory loggerFactory, AuthenticationHandler handler, JwtSettings jwtSettings)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -96,7 +118,34 @@ namespace Aula02Api
             this.ConfigureMapping(app);
 
             // *** Exemplo Middleware *** //
-                // app.ApplyUserValidation();
+            // app.ApplyUserValidation();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Curso Web Api");
+            });
+
+
+            /* JWT */
+
+            var validationParameters = new TokenValidationParameters
+            {
+                IssuerSigningKey = jwtSettings.SecurityKey,
+                ValidAudience = jwtSettings.Audience,
+                ValidIssuer = jwtSettings.Issuer
+            };
+
+            var options = new JwtBearerOptions
+            {
+                Events = handler,
+                TokenValidationParameters = validationParameters
+            };
+
+            app.UseJwtBearerAuthentication(options);
+
+            /* JWT */
+
 
             app.UseMvc();
         }
